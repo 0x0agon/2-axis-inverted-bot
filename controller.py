@@ -5,27 +5,27 @@ import math
 class Controller:
 
     def __init__(self):
-        maxVoltage = 11.1 #Assumes the motors are running off 11.1 V battery
-        rpmPerVolt = 0 #the rotational speed per volt
-        wheelRadius = 0
+        self. maxVoltage = 11.1 #Assumes the motors are running off 11.1 V battery
+        self.rpmPerVolt = 0 #the rotational speed per volt
+        self.wheelRadius = 0
 
-        desiredAngle = 0.0 #Assumes you want to stand up initially
-        desiredPosition = 0.0 #Assumes you want to stay still initially
+        self.desiredAngle = 0.0 #Assumes you want to stand up initially
+        self.desiredPosition = 0.0 #Assumes you want to stay still initially
 
-        errorPendulum = 0.0 #Inits the error var for pendulum angle
-        errorDeltaPendulum = 0.0 #Inits the error var for pendulum change in ang
-        errorCart = 0.0 #Inits the error var for the cart position 
-        errorDeltaCart = 0.0 #Inits the error var for the change in cart position
+        self.errorPendulum = 0.0 #Inits the error var for pendulum angle
+        self.errorDeltaPendulum = 0.0 #Inits the error var for pendulum change in ang
+        self.errorCart = 0.0 #Inits the error var for the cart position 
+        self.errorDeltaCart = 0.0 #Inits the error var for the change in cart position
         
-        Pinverted = 0.0
-        Iinverted = 0.0
-        Dinverted = 0.0
-        Pcart = 0.0
-        Icart = 0.0
-        Dcart = 0.0
-        gains = [[Pinverted, Iinverted, Dinverted],[Pcart, Icart, Dcart]]
+        self.Pinverted = 0.0
+        self.Iinverted = 0.0
+        self.Dinverted = 0.0
+        self.Pcart = 0.0
+        self.Icart = 0.0
+        self.Dcart = 0.0
+        self.gains = [[self.Pinverted, self.Iinverted, self.Dinverted],[self.Pcart, self.Icart, self.Dcart]]
 
-        currentMotorVoltage = 0.0 #This keeps track of the output voltage for errors
+        self.currentMotorVoltage = 0.0 #This keeps track of the output voltage for errors
 
 
     def determineOutput(self, sensorAngle, cartPositionValue, gyroData):
@@ -36,13 +36,13 @@ class Controller:
         #in inches.
         self.getErrors(sensorAngle, cartPositionValue, gyroData)
         outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorChangePendulum
-        outputCart = self.Pcart*self.errorCart+self.Dcart*self.errorChangeCart
+        outputCart = 0.0 #self.Pcart*self.errorCart+self.Dcart*self.errorChangeCart
         output = outputPendulum - outputCart
-        if math.fabs(output) > maxVoltage:
+        if math.fabs(output) > self.maxVoltage:
             if output> 0:
-                return maxVoltage - 0.1
+                return self.maxVoltage - 0.1
             else:
-                return maxVoltage + 0.1
+                return self.maxVoltage + 0.1
         else:
             return output
         
@@ -51,6 +51,7 @@ class Controller:
     def getErrors(self, sensorAngle, cartPositionValue, gyroData, cartSpeed):
         #This function calculates and keeps track of error variables
         #Integral of the erros is currently unimplemented, as its tricky
+        
         self.errorPendulum = self.desiredAngle - sensorAngle
         self.errorChangePendulum = gyroData #Prove that this is correct
 
@@ -64,7 +65,7 @@ class Controller:
         #gains and 1 for cart gains. The pIOrDIndicator indicates whether the P,
         #I, or D gain value is going to be changed
 
-        gains[invertedOrCartIndicator][pIOrDIndicator]] = value
+        self.gains[invertedOrCartIndicator][pIOrDIndicator] = value
         self.updateGainsFromList()
 
     def changePInv(self, value):
@@ -108,22 +109,22 @@ class Controller:
         #This function is meant to be used internally to programatically update
         #the gain values stored in each variable so that they match the values
         #stored inside the list 'gains'
-        self.Pinverted = gains[0][0]
-        self.Iinverted = gains[0][1]
-        self.Dinverted = gains[0][2]
-        self.Pcart = gains[1][0]
-        self.Icart = gains[1][1]
-        self.Dcart = gains[1][2]
+        self.Pinverted = self.gains[0][0]
+        self.Iinverted = self.gains[0][1]
+        self.Dinverted = self.gains[0][2]
+        self.Pcart = self.gains[1][0]
+        self.Icart = self.gains[1][1]
+        self.Dcart = self.gains[1][2]
 
     def updateGainsFromVars(self):
         #This function is meant to be used internally to programatically update
         #the gain values stored in each the list 'gains' so that they match the
         #values stored in each variable declaration
-        gains[0][0] = self.Pinverted
-        gains[0][1] = self.Iinverted
-        gains[0][2] = self.Dinverted
-        gains[1][0] = self.Pcart 
-        gains[1][1] = self.Icart 
-        gains[1][2] = self.Dcart
+        self.gains[0][0] = self.Pinverted
+        self.gains[0][1] = self.Iinverted
+        self.gains[0][2] = self.Dinverted
+        self.gains[1][0] = self.Pcart 
+        self.gains[1][1] = self.Icart 
+        self.gains[1][2] = self.Dcart
 
     
