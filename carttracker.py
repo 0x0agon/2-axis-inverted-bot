@@ -23,8 +23,8 @@ class CartTracker:
         self.currentPosition = 0.0
         self.previousPosition = 0.0
 
-        self.currentTime = time.time
-        self.elapsedTime = 1000
+        self.currentTime = time.time()
+        self.elapsedTime = 1000 
 
         self.encoderTicCounter = 0
 
@@ -40,7 +40,7 @@ class CartTracker:
 
         gpio.setup(self.encoderDataPin1, gpio.IN) #This sets the pin up to read the incoming bits from the encoder
 
-        gpio.add_event_detect("P8_17", gpio.RISING) #This tells the BBB to create an event when the encoder data pin changes from low to high.
+        #gpio.add_event_detect("P8_17", gpio.RISING) #This tells the BBB to create an event when the encoder data pin changes from low to high.
                                                     #We will use this to increment the counter without stopping the program.
 
     def getEncoderUpdate(self):
@@ -51,7 +51,7 @@ class CartTracker:
         
         oldTime = self.currentTime
         self.currentTime = time.time() #This updates the current time variable
-        self.elapsedTime = self.currentTime - oldtime #This updates the elapsed time variable
+        self.elapsedTime = self.currentTime - oldTime #This updates the elapsed time variable
 
         self.encoderTicCounter = self.encoderTicCounter + (-1) ** self.direction #This increments or decrements the counter according to direction of the motor spin
 
