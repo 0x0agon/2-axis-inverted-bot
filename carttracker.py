@@ -40,15 +40,31 @@ class CartTracker:
 
         gpio.setup(self.encoderDataPin1, gpio.IN) #This sets the pin up to read the incoming bits from the encoder
 
-        gpio.add_event_detect(self.encoderDataPin1, gpio.RISING) #This tells the BBB to create an event when the encoder data pin changes from low to high.
-                                                                 #We will use this to increment the counter without stopping the program.
+        gpio.add_event_detect("P8_17", gpio.RISING) #This tells the BBB to create an event when the encoder data pin changes from low to high.
+                                                    #We will use this to increment the counter without stopping the program.
+
+    def getEncoderUpdate(self):
+        #This funciton should be triggered whenever the encoder bit changes
+        #This funciton updates the position, velocity, elapsed time, current time, and direction variables
+
+        self.getDirection() #This updates the direction variable
+        
+        oldTime = self.currentTime
+        self.currentTime = time.time() #This updates the current time variable
+        self.elapsedTime = self.currentTime - oldtime #This updates the elapsed time variable
+
+        self.encoderTicCounter = self.encoderTicCounter + (-1) ** self.direction #This increments or decrements the counter according to direction of the motor spin
+
+        self.findPosition()#This updates the position variables
+
+        self.findVelocity()#This updates the velocity variables
 
 
-    def getDirection(self,motorDriverObjectName):
+    def getDirection(self):
         #This grabs the direction from the motor driver object
         #The value should either be a 0 or a 1
 
-        self.direction = motorDriverObjectName.getDirection()
+        self.direction = self.motorDriverObjectName.getDirection()
 
     def findPosition(self):
         #This function calculates the current position relative to where the robot started
@@ -64,14 +80,16 @@ class CartTracker:
         self.previousVelocity = self.currentVelocity
         self.currentVelocity = (self.currentPosition - self.previousPosition)/self.elapsedTime
 
-    #The following code should run whenever an event is detected
-    #Which should only occur when the encoder data bit switches
-    #from a 0 to a 1.
-    if gpio.event_detected("P8_17"):
-        oldTime = self.currentTime
-        self.currentTime = time.time()
-        self.elapsedTime = self.currentTime - oldTime #This gives the elapsed time for position and velocity calculations
+    
+        #The following code should run whenever an event is detected
+        #Which should only occur when the encoder data bit switches
+        #from a 0 to a 1.
+       # if gpio.event_detected("P8_17"):
+       #     oldTime = self.currentTime
+       #     self.currentTime = time.time()
+       #     self.elapsedTime = self.currentTime - oldTime #This gives the elapsed time for position and velocity calculations
 
-        self.encoderTicCounter = self.encoderTicCounter + (-1)**self.getDirection(self.motorDriverObjectName)
-
+       #     self.encoderTicCounter = self.encoderTicCounter + (-1) ** self.direction
+       # else:
+       #     pass
     
