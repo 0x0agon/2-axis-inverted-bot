@@ -28,17 +28,17 @@ class CartTracker:
 
         self.encoderTicCounter = 0
 
-        self.wheelDiameter = 4 #This is the diameter of the wheel in inches
-        self.gearRatio = 1/29 #This is the ratio of the number of times the motor spins compared to one rotation of the wheel axis
+        self.wheelDiameter = 4.0 #This is the diameter of the wheel in inches
+        self.gearRatio = (1.0/29) #This is the ratio of the number of times the motor spins compared to one rotation of the wheel axis
 
     def initialize(self, motorDriverObjectName):
         #This function sets up the I/O needed
 
         self.motorDriverObjectName = motorDriverObjectName #Stores the name of the specific object so that the current motor direction can be found programmatically
 
-        self.encoderDataPin1 = "P8_17" #This is the pin for the encoder data bits
+        self.encoderDataPin1 = "P8_17" #This is the pin for the encoder data bits, only a reference for the user
 
-        gpio.setup(self.encoderDataPin1, gpio.IN) #This sets the pin up to read the incoming bits from the encoder
+        #gpio.setup(self.encoderDataPin1, gpio.IN) #This sets the pin up to read the incoming bits from the encoder
 
         #gpio.add_event_detect("P8_17", gpio.RISING) #This tells the BBB to create an event when the encoder data pin changes from low to high.
                                                     #We will use this to increment the counter without stopping the program.
@@ -71,7 +71,7 @@ class CartTracker:
         #using the encoder tic counter, the radius of the wheel, and the gear ratio of the motor
         
         self.previousPosition = self.currentPosition
-        self.currentPosition = self.encoderTicCounter * self.gearRatio * self.wheelDiameter
+        self.currentPosition = (self.encoderTicCounter/16.0) * self.gearRatio * self.wheelDiameter
 
     def findVelocity(self):
         #This function calculates the current velocity based on the elapsed time, 

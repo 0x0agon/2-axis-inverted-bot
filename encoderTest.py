@@ -16,6 +16,6 @@ driver.driveMotors(2,11) # This is done only to set a direction for the motors s
 while True:
     if gpio.event_detected("P8_17"):
         cart.getEncoderUpdate()
-        print cart.encoderTicCounter, cart.currentPosition, cart.currentVelocity
+        print cart.encoderTicCounter, cart.currentPosition, cart.currentVelocity, cart.elapsedTime
     else:
         pass
