@@ -13,11 +13,11 @@ class MotorDriver:
         #This function creates an object of the MotorDriver Class
         #It also initializes the direction, enable, and pwm pin name variables
         #but does not yet set them, since their names are unknown.
-        directionPin = 'pin not yet set'
-        enablePin = 'pin not yet set'
-        pwmPin = 'pin not yet set'
+        self.directionPin = 'pin not yet set'
+        self.enablePin = 'pin not yet set'
+        self.pwmPin = 'pin not yet set'
 
-
+        self.direction = 0 
 
     def initialize(self):
         #This funciton sets up and initializes the I/O and pwm pins
@@ -50,16 +50,23 @@ class MotorDriver:
         #This function takes a desired motor voltage from the controller and
         #converts it into a pwm duty cycle based off of the MaxVoltage value
         #and a direction based on the sign of the controllerOutput
-        if controllerOutput > 1:
+        if controllerOutput > 0:
             gpio.output(self.directionPin, gpio.HIGH)
+            self.direction = 1
         else:
             gpio.output(self.directionPin, gpio.LOW)
+            self.direction = 0
 
         dutyCycle = (math.fabs(controllerOutput)/MaxVoltage)*100
         if dutyCycle > 100.0:
             pwm.set_duty_cycle("P9_14", 99.0)
         else:
             pwm.set_duty_cycle("P9_14", dutyCycle)
+
+    def getDirection(self):
+        #This function simply returns the current direction value
+        direction = self.direction
+        return direction
 
     def end(self):
         #This function is used to end the session, cleaning up all gpio pins
