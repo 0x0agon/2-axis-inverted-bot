@@ -28,13 +28,13 @@ class Controller:
         self.currentMotorVoltage = 0.0 #This keeps track of the output voltage for errors
 
 
-    def determineOutput(self, sensorAngle, cartPositionValue, gyroData):
+    def determineOutput(self, sensorAngle, cartPositionValue, gyroData, cartSpeed):
         #This function is the meat and potatoes of this class. It determines
         #the necessary motor output voltage from the sensorAngle and
         #cartPositionValue sensor values using two PID controllers.
         #sensorAngle should be in degrees and cartPositionValue should be
         #in inches.
-        self.getErrors(sensorAngle, cartPositionValue, gyroData)
+        self.getErrors(sensorAngle, cartPositionValue, gyroData,cartSpeed)
         outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorChangePendulum
         outputCart = 0.0 #self.Pcart*self.errorCart+self.Dcart*self.errorChangeCart
         output = outputPendulum - outputCart
