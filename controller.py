@@ -42,7 +42,7 @@ class Controller:
             if output> 0:
                 return self.maxVoltage - 0.1
             else:
-                return self.maxVoltage + 0.1
+                return -1*self.maxVoltage + 0.1
         else:
             return output
         
