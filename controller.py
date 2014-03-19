@@ -14,8 +14,10 @@ class Controller:
 
         self.errorPendulum = 0.0 #Inits the error var for pendulum angle
         self.errorDeltaPendulum = 0.0 #Inits the error var for pendulum change in ang
+        self.errorPenIntegral = 0.0 #Inits the error var for the pendulum integral term
         self.errorCart = 0.0 #Inits the error var for the cart position 
         self.errorDeltaCart = 0.0 #Inits the error var for the change in cart position
+        self.errorCartIntegral = 0.0 #Inits the error var for the cart integral term
         
         self.Pinverted = 0.0
         self.Iinverted = 0.0
@@ -27,6 +29,16 @@ class Controller:
 
         self.currentMotorVoltage = 0.0 #This keeps track of the output voltage for errors
 
+    def changeDesiredAngle(self, newTargetAngle):
+        #This function changes the desired angle variable
+        #Typically, the angle should be set close to 0 to stand upright
+        self.desiredAngle = newTargetAngle
+
+    def changeDesiredPosition(self, newTargetPosition):
+        #This function changes the desired position variable
+        #Typically, the position should be set to 0, with other values
+        #moving it forwards or backwards
+        self.desiredPosition = newTargetPosition
 
     def determineOutput(self, sensorAngle, cartPositionValue, gyroData, cartSpeed):
         #This function is the meat and potatoes of this class. It determines
@@ -35,30 +47,37 @@ class Controller:
         #sensorAngle should be in degrees and cartPositionValue should be
         #in inches.
         self.getErrors(sensorAngle, cartPositionValue, gyroData,cartSpeed)
-        outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorChangePendulum
-        outputCart = 0.0 #self.Pcart*self.errorCart+self.Dcart*self.errorChangeCart
+        outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorDeltaPendulum+self.Iinverted*self.errorPenIntegral
+        outputCart = self.Pcart*self.errorCart+self.Dcart*self.errorDeltaCart+self.Icart*self.errorCartIntegral
         output = outputPendulum - outputCart
-        if math.fabs(output) > self.maxVoltage:
-            if output> 0:
-                return self.maxVoltage - 0.1
+        if sensorAngle < 50 or sensorAngle >-50:
+            if math.fabs(output) > self.maxVoltage:
+                if output> 0:
+                    return self.maxVoltage - 0.1
+                else:
+                    return -1*self.maxVoltage + 0.1
             else:
-                return -1*self.maxVoltage + 0.1
+                return output
         else:
-            return output
+            return 0.0
         
 
 
     def getErrors(self, sensorAngle, cartPositionValue, gyroData, cartSpeed):
         #This function calculates and keeps track of error variables
-        #Integral of the erros is currently unimplemented, as its tricky
         
+        previousError = self.errorPendulum
         self.errorPendulum = self.desiredAngle - sensorAngle
-        self.errorChangePendulum = gyroData #Prove that this is correct
+        self.errorDeltaPendulum = self.errorPendulum - previousError
+        if abs(self.errorPenIntegral) >= 150:
+            self.errorPenIntegral = 149
+        else:
+            self.errorPenIntegral = self.errorPendulum + self.errorPenIntegral
 
         self.errorCart = self.desiredPosition - cartPositionValue
-        self.errorChangeCart = cartSpeed#(currentMotorVoltage/maxVoltage)*rpmPerVolt*wheelRadius
+        self.errorDeltaCart = cartSpeed#(currentMotorVoltage/maxVoltage)*rpmPerVolt*wheelRadius
+        self.errorCartIntegral = self.errorCart + self.errorCartIntegral
         
-
     def changeGain(self, invertedOrCartIndicator, pIOrDIndicator, value):
         #This function allows the user to change the gain value of any one
         #gain. The invertedOrCartIndicator should be 0 for inverted pendulum

@@ -36,7 +36,7 @@ class ComplimentaryFilter:
         #This function computes the roll and picth angles for motion in 3D space
         #Roll is the angle about the x-axis, Pitch is the angle about the y-axis
         #Yaw is currently unimplemented
-        roll = math.atan2(Gy, Gz)*180/math.pi +5 #The +5 is for an angular offset, since it sits at -4.9 on a flat table
+        roll = math.atan2(Gy, Gz)*180/math.pi +8 #The +5 is for an angular offset, since it sits at -4.9 on a flat table
         pitch1 = math.sqrt(Gy*Gy + Gz*Gz)
         pitch = math.atan2(Gx, pitch1)*180/math.pi
         return roll, pitch
