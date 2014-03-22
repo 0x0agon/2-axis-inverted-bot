@@ -40,17 +40,17 @@ class Controller:
         #moving it forwards or backwards
         self.desiredPosition = newTargetPosition
 
-    def determineOutput(self, sensorAngle, cartPositionValue, gyroData, cartSpeed):
+    def determineOutput(self, filteredSensorAngle, cartPosition):
         #This function is the meat and potatoes of this class. It determines
         #the necessary motor output voltage from the sensorAngle and
         #cartPositionValue sensor values using two PID controllers.
         #sensorAngle should be in degrees and cartPositionValue should be
         #in inches.
-        self.getErrors(sensorAngle, cartPositionValue, gyroData,cartSpeed)
+        self.getErrors(filteredSensorAngle, cartPosition)
         outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorDeltaPendulum+self.Iinverted*self.errorPenIntegral
         outputCart = self.Pcart*self.errorCart+self.Dcart*self.errorDeltaCart+self.Icart*self.errorCartIntegral
         output = outputPendulum - outputCart
-        if sensorAngle < 50 or sensorAngle >-50:
+        if filteredSensorAngle < 50 or filteredSensorAngle >-50:
             if math.fabs(output) > self.maxVoltage:
                 if output> 0:
                     return self.maxVoltage - 0.1
@@ -63,19 +63,20 @@ class Controller:
         
 
 
-    def getErrors(self, sensorAngle, cartPositionValue, gyroData, cartSpeed):
+    def getErrors(self, filteredSensorAngle, cartPosition):
         #This function calculates and keeps track of error variables
         
         previousError = self.errorPendulum
-        self.errorPendulum = self.desiredAngle - sensorAngle
+        self.errorPendulum = self.desiredAngle - filteredSensorAngle
         self.errorDeltaPendulum = self.errorPendulum - previousError
         if abs(self.errorPenIntegral) >= 150:
             self.errorPenIntegral = 149
         else:
             self.errorPenIntegral = self.errorPendulum + self.errorPenIntegral
 
-        self.errorCart = self.desiredPosition - cartPositionValue
-        self.errorDeltaCart = cartSpeed#(currentMotorVoltage/maxVoltage)*rpmPerVolt*wheelRadius
+        previousCartError = self.errorCart
+        self.errorCart = self.desiredPosition - cartPosition
+        self.errorDeltaCart = self.errorCart - previousCartError
         self.errorCartIntegral = self.errorCart + self.errorCartIntegral
         
     def changeGain(self, invertedOrCartIndicator, pIOrDIndicator, value):
