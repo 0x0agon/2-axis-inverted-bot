@@ -28,6 +28,8 @@ class CartTracker:
 
         self.encoderTicCounter = 0
 
+        self.direction = 0
+
         self.wheelDiameter = 4.0 #This is the diameter of the wheel in inches
         self.gearRatio = (1.0/29) #This is the ratio of the number of times the motor spins compared to one rotation of the wheel axis
 
@@ -47,8 +49,10 @@ class CartTracker:
         #This funciton should be triggered whenever the encoder bit changes
         #This funciton updates the position, velocity, elapsed time, current time, and direction variables
 
-        self.getDirection() #This updates the direction variable
-        
+        #This function does NOT find the direction, that is handled by
+        #the findDirection() function which should be triggered by the 
+        #second encoder data line event.        
+
         oldTime = self.currentTime
         self.currentTime = time.time() #This updates the current time variable
         self.elapsedTime = self.currentTime - oldTime #This updates the elapsed time variable
@@ -60,11 +64,17 @@ class CartTracker:
         self.findVelocity()#This updates the velocity variables
 
 
-    def getDirection(self):
-        #This grabs the direction from the motor driver object
+    def findDirection(self):
+        #This function finds the difference between encoder pulses in time
+        #from which the direction can be found
         #The value should either be a 0 or a 1
 
-        self.direction = self.motorDriverObjectName.getDirection()
+        now = time.time()
+        pulseTimeDifference = now - self.currentTime
+        if pulseTimeDifference >0:
+            self.direction = 0
+        else:
+            self.direction = 1
 
     def findPosition(self):
         #This function calculates the current position relative to where the robot started
