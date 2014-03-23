@@ -87,13 +87,31 @@ class CartTracker:
         #from which the direction can be found
         #The value should either be a 0 or a 1
 
-        if (self.newState - self.oldState) == 1 or (self.newState - self.oldState) == -3:
+        if self.oldState == 0 and self.newState == 1:
             self.direction = 0
-        elif (self.newState - self.oldState) == -1 or (self.newState - self.oldState) == 3:
+        elif self.oldState == 1 and self.newState == 2:
+            self.direction = 0
+        elif self.oldState == 2 and self.newState == 3:
+            self.direction = 0
+        elif self.oldState == 3 and self.newState == 0:
+            self.direction = 0
+        elif self.oldState == 0 and self.newState == 3:
+            self.direction = 1
+        elif self.oldState == 3 and self.newState == 2:
+            self.direction = 1
+        elif self.oldState == 2 and self.newState == 1:
+            self.direction = 1
+        elif self.oldState == 1 and self.newState == 0:
             self.direction = 1
         else:
+            self.direction = self.direction
+        #if (self.newState - self.oldState) == 1 or (self.newState - self.oldState) == -3:
+        #    self.direction = 0
+        #elif (self.newState - self.oldState) == -1 or (self.newState - self.oldState) == 3:
+        #    self.direction = 1
+        #else:
             #print "Uhhh...looks like the direction math is off or something."
-            pass
+        #    pass
 
     def findPosition(self):
         #This function calculates the current position relative to where the robot started

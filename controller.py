@@ -49,7 +49,7 @@ class Controller:
         self.getErrors(filteredSensorAngle, cartPosition)
         outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorDeltaPendulum+self.Iinverted*self.errorPenIntegral
         outputCart = self.Pcart*self.errorCart+self.Dcart*self.errorDeltaCart+self.Icart*self.errorCartIntegral
-        output = outputPendulum + outputCart
+        output = outputPendulum - outputCart
         if filteredSensorAngle < 50 or filteredSensorAngle >-50:
             if math.fabs(output) > self.maxVoltage:
                 if output> 0:

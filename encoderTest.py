@@ -20,11 +20,11 @@ while True:
         cart.updateState(gpio.input("P8_17"),gpio.input("P8_13"))
         cart.getEncoderUpdate()
         #print cart.encoderTicCounter, cart.currentPosition, cart.currentVelocity, cart.elapsedTime
-        print cart.direction
+        print 'direction= ', cart.direction, 'encoder= ', cart.encoderTicCounter
     else:
         pass
     if gpio.event_detected("P8_13"):
         cart.updateState(gpio.input("P8_17"),gpio.input("P8_13"))
-        print cart.direction
+        
     else:
         pass        
