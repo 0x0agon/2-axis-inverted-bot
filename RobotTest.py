@@ -47,12 +47,7 @@ troll.changePInv(0.01)
 troll.changePCart(2.0)
 
 while True:
-    if gpio.event_detected("P8_17"):
-        cart.getEncoderUpdate()
-        print 'Encoder Triggered'
-    elif gpio.event_detected("P8_13"):
-        cart.findDirection()
-    else:       #Will eventually need to add an elif for the other encoder
+
         deltaGyroX = xFilter.getGyroAngPositionChange(mpu.getRealGyroData('x'), xFilter.getTimeSinceLast())
         deltaGyroY = yFilter.getGyroAngPositionChange(mpu.getRealGyroData('y'), yFilter.getTimeSinceLast())
         rollPitch = xFilter.getAccelRollPitch(mpu.getRealAccelData('x'),mpu.getRealAccelData('y'), mpu.getRealAccelData('z'))
@@ -71,3 +66,10 @@ while True:
         #print 'Angle = ', xAngle, 'Accel= ', rollAngle, 'Gyro= ', gyroXAng
         print 'Angle= ', xAngle,'direction= ', cart.direction, 'Encoder= ', cart.encoderTicCounter, 'Position= ', cart.currentPosition
     
+        #This code is run whenever an encoder pin event is detected
+        if gpio.event_detected("P8_17"):
+            cart.getEncoderUpdate()
+        elif gpio.event_detected("P8_13"):
+            cart.findDirection()
+        else:
+            pass

@@ -30,6 +30,9 @@ class CartTracker:
 
         self.direction = 0
 
+        self.previousTimeLine2 = time.time()
+        self.currentTimeLine2 = time.time()
+      
         self.wheelDiameter = 4.0 #This is the diameter of the wheel in inches
         self.gearRatio = (1.0/29) #This is the ratio of the number of times the motor spins compared to one rotation of the wheel axis
 
@@ -49,9 +52,7 @@ class CartTracker:
         #This funciton should be triggered whenever the encoder bit changes
         #This funciton updates the position, velocity, elapsed time, current time, and direction variables
 
-        #This function does NOT find the direction, that is handled by
-        #the findDirection() function which should be triggered by the 
-        #second encoder data line event.        
+        self.findDirection() #It is important to find the direction before updating the time
 
         oldTime = self.currentTime
         self.currentTime = time.time() #This updates the current time variable
@@ -63,15 +64,20 @@ class CartTracker:
 
         self.findVelocity()#This updates the velocity variables
 
+    def updateLine2Time(self):
+        #This funciton serves to update the time since the last
+        #rising edge on encoder data line 2
+        self.previousTimeLine2 = self.currentTimeLine2
+        self.currentTimeLine2 = time.time()
 
     def findDirection(self):
         #This function finds the difference between encoder pulses in time
         #from which the direction can be found
         #The value should either be a 0 or a 1
 
-        now = time.time()
-        pulseTimeDifference = now - self.currentTime
-        if pulseTimeDifference >0:
+        encoderLinesTimeDifference = self.currentTime - self.previousTimeLine2
+        print encoderLinesTimeDifference
+        if encoderLinesTimeDifference >0:
             self.direction = 0
         else:
             self.direction = 1
