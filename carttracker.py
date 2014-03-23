@@ -30,8 +30,8 @@ class CartTracker:
 
         self.direction = 0
 
-        self.previousTimeLine2 = time.time()
-        self.currentTimeLine2 = time.time()
+        self.newState = 0
+        self.oldState = 0
       
         self.wheelDiameter = 4.0 #This is the diameter of the wheel in inches
         self.gearRatio = (1.0/29) #This is the ratio of the number of times the motor spins compared to one rotation of the wheel axis
@@ -54,9 +54,9 @@ class CartTracker:
 
         self.findDirection() #It is important to find the direction before updating the time
 
-        oldTime = self.currentTime
+        self.oldTime = self.currentTime
         self.currentTime = time.time() #This updates the current time variable
-        self.elapsedTime = self.currentTime - oldTime #This updates the elapsed time variable
+        self.elapsedTime = self.currentTime - self.oldTime #This updates the elapsed time variable
 
         self.encoderTicCounter = self.encoderTicCounter + (-1) ** self.direction #This increments or decrements the counter according to direction of the motor spin
 
@@ -64,23 +64,36 @@ class CartTracker:
 
         self.findVelocity()#This updates the velocity variables
 
-    def updateLine2Time(self):
+    def updateState(self,lineAValue, lineBValue):
         #This funciton serves to update the time since the last
         #rising edge on encoder data line 2
-        self.previousTimeLine2 = self.currentTimeLine2
-        self.currentTimeLine2 = time.time()
+        
+        self.oldState = self.newState
+
+        if lineAValue == 0 and lineBValue == 0:
+            self.newState = 0
+        elif lineAValue == 0 and lineBValue == 1:
+            self.newState = 1
+        elif lineAValue == 1 and lineBValue == 0:
+            self.newState = 3
+        elif lineAValue == 1 and lineBValue == 1:
+            self.newState = 2
+        else:
+            print "Congrats, the encoder found the mythical 5th state. You've broken digital logic."
+            
 
     def findDirection(self):
         #This function finds the difference between encoder pulses in time
         #from which the direction can be found
         #The value should either be a 0 or a 1
 
-        encoderLinesTimeDifference = self.currentTime - self.previousTimeLine2
-        print encoderLinesTimeDifference
-        if encoderLinesTimeDifference >0:
+        if (self.newState - self.oldState) == 1 or (self.newState - self.oldState) == -3:
             self.direction = 0
-        else:
+        elif (self.newState - self.oldState) == -1 or (self.newState - self.oldState) == 3:
             self.direction = 1
+        else:
+            #print "Uhhh...looks like the direction math is off or something."
+            pass
 
     def findPosition(self):
         #This function calculates the current position relative to where the robot started
