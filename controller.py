@@ -1,6 +1,6 @@
 import time
 import math
-
+import numpy as np
 
 class Controller:
 
@@ -19,6 +19,9 @@ class Controller:
         self.errorDeltaCart = 0.0 #Inits the error var for the change in cart position
         self.errorCartIntegral = 0.0 #Inits the error var for the cart integral term
         
+        self.cartErrorArray = np.linspace(0,0,15)
+        self.pendulumErrorArray = np.linspace(0,0,15)
+
         self.Pinverted = 0.0
         self.Iinverted = 0.0
         self.Dinverted = 0.0
@@ -66,17 +69,21 @@ class Controller:
     def getErrors(self, filteredSensorAngle, cartPosition):
         #This function calculates and keeps track of error variables
         
-        previousError = self.errorPendulum
+        self.pendulumErrorArray =np.roll(self.pendulumErrorArray,1)
         self.errorPendulum = self.desiredAngle - filteredSensorAngle
-        self.errorDeltaPendulum = self.errorPendulum - previousError
+        self.pendulumErrorArray[0:1] = self.errorPendulum#self.desiredAngle - filteredSensorAngle
+        pendulumDerivativeArray = np.diff(self.pendulumErrorArray,1)
+        self.errorDeltaPendulum = np.mean(pendulumDerivativeArray)
         if abs(self.errorPenIntegral) >= 150:
             self.errorPenIntegral = 149
         else:
             self.errorPenIntegral = self.errorPendulum + self.errorPenIntegral
 
-        previousCartError = self.errorCart
+        self.cartErrorArray= np.roll(self.cartErrorArray, 1)
         self.errorCart = self.desiredPosition - cartPosition
-        self.errorDeltaCart = self.errorCart - previousCartError
+        self.cartErrorArray[0:1] = self.errorCart
+        cartDerivativeArray = np.diff(self.cartErrorArray,1)
+        self.errorDeltaCart = np.mean(cartDerivativeArray)
         self.errorCartIntegral = self.errorCart + self.errorCartIntegral
         
     def changeGain(self, invertedOrCartIndicator, pIOrDIndicator, value):

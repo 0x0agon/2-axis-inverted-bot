@@ -1,9 +1,14 @@
 import Adafruit_BBIO.GPIO as gpio
+import Adafruit_BBIO.PWM as pwm
 import mpu6050
 import ComplimentaryFilter
 import controller
 import motordriver
 import carttracker
+
+#Clean up GPIO and PWM pins from any aborted programs
+gpio.cleanup()
+pwm.cleanup()
 
 #Create an mpu6050 object for the IMU sensor input
 mpu = mpu6050.MPU6050()
@@ -25,41 +30,38 @@ driver.enable()
 cart = carttracker.CartTracker()
 cart.initialize(driver)
 
+#Setup the callback events needed for the encoders
+def event1Callback(channel):
+    cart.updateState(gpio.input("P8_17"), gpio.input("P8_13"))
+    cart.getEncoderUpdate()
+
+def event2Callback(channel):
+    cart.updateState(gpio.input("P8_17"), gpio.input("P8_13"))
+
 #Setup the GPIO pin used for the drive wheel encoder and 
 #create an event for the pin. 
 gpio.setup("P8_17", gpio.IN) #This is the main encoder data pin
-gpio.add_event_detect("P8_17", gpio.BOTH)
+gpio.add_event_detect("P8_17", gpio.BOTH, callback=event1Callback)
 
 gpio.setup("P8_13", gpio.IN) #This pin is used only to determine direction
-gpio.add_event_detect("P8_13", gpio.BOTH)
+gpio.add_event_detect("P8_13", gpio.BOTH, callback=event2Callback)
 
 #Create the drive wheel controller object
 troll = controller.Controller()
-troll.changeDesiredAngle(2.85)
+troll.changeDesiredAngle(2.32)
 
     #Change the Pendulum Gains
-#troll.changePInv(0.01)
-#troll.changePInv(2.70) #1.72 is good for P alone
-#troll.changeDInv(1.65) #2.30
-#troll.changeIInv(0.06) #0.04
+#troll.changePInv(1)
+troll.changePInv(1.00) #1.72 is good for P alone
+troll.changeDInv(0.00) #2.30
+troll.changeIInv(0.00) #0.04
 
     #Change the Cart Gains
-troll.changePCart(5.0)
+#troll.changePCart(6.0) #8
+#troll.changeICart(0.02)
+#troll.changeDCart(18.0) #25
 
 while True:
-
-        #This code is run whenever an encoder pin event is detected
-        if gpio.event_detected("P8_17"):
-            cart.updateState(gpio.input("P8_17"), gpio.input("P8_13"))
-            cart.getEncoderUpdate()
-            print 'event 1'
-        else:
-            pass
-        if gpio.event_detected("P8_13"):
-            cart.updateState(gpio.input("P8_17"), gpio.input("P8_13"))
-            cart.findDirection()
-        else:
-            pass
 
         deltaGyroX = xFilter.getGyroAngPositionChange(mpu.getRealGyroData('x'), xFilter.getTimeSinceLast())
         deltaGyroY = yFilter.getGyroAngPositionChange(mpu.getRealGyroData('y'), yFilter.getTimeSinceLast())
@@ -73,10 +75,10 @@ while True:
         #print 'roll= ', rollAngle, 'pitch= ', pitchAngle, 'X Gyro= ', gyroXAng, 'Y Gyro = ', gyroYAng
         #print 'roll= ', xAngle, 'pitch= ', yAngle
     
-        output = troll.determineOutput(0, cart.currentPosition)
+        output = troll.determineOutput(xAngle, cart.currentPosition)
         driver.driveMotors(output,troll.maxVoltage)
         #print 'P = ', troll.errorPendulum, 'I = ', troll.errorPenIntegral, 'D = ', troll.errorDeltaPendulum
         #print 'Angle = ', xAngle, 'Accel= ', rollAngle, 'Gyro= ', gyroXAng
-        #print 'direction= ', cart.direction, 'Encoder= ', cart.encoderTicCounter, 'Position= ', cart.currentPosition
-        print 'running code', cart.direction
+        #print 'Angle= ', xAngle, 'Encoder= ', cart.encoderTicCounter, 'Output= ', output
+        print troll.pendulumErrorArray
         
