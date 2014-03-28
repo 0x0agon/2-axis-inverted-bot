@@ -65,20 +65,20 @@ troll.changeIInv(0.0645) #0.06
 while True:
         previousTime = time.time()
         
-        deltaGyroX = xFilter.getGyroAngPositionChange(mpu.getRealGyroData('x'), xFilter.getTimeSinceLast())
-        deltaGyroY = yFilter.getGyroAngPositionChange(mpu.getRealGyroData('y'), yFilter.getTimeSinceLast())
-        rollPitch = xFilter.getAccelRollPitch(mpu.getRealAccelData('x'),mpu.getRealAccelData('y'), mpu.getRealAccelData('z'))
+        deltaGyroX = xFilter.getGyroAngPositionChange(mpu.getRealGyroDataX(), xFilter.getTimeSinceLast())
+        deltaGyroY = yFilter.getGyroAngPositionChange(mpu.getRealGyroDataY(), yFilter.getTimeSinceLast())
+        rollPitch = xFilter.getAccelRollPitch(mpu.getRealAccelDataX(),mpu.getRealAccelDataY(), mpu.getRealAccelDataZ())
         rollAngle = -rollPitch[0]
-        pitchAngle = -rollPitch[1]
+        #pitchAngle = -rollPitch[1]
         #gyroXAng = gyroXAng - deltaGyroX
         #gyroYAng = gyroYAng + deltaGyroY
-        yAngle = yFilter.findFilteredAngle(deltaGyroY, pitchAngle)
-        xAngle = xFilter.findFilteredAngle(deltaGyroX, rollAngle)
+        #yAngle = yFilter.findFilteredAngle(deltaGyroY, pitchAngle)
+        #xAngle = xFilter.findFilteredAngle(deltaGyroX, rollAngle)
         #print 'roll= ', rollAngle, 'pitch= ', pitchAngle, 'X Gyro= ', gyroXAng, 'Y Gyro = ', gyroYAng
         #print 'roll= ', xAngle, 'pitch= ', yAngle
     
-        output = troll.determineOutput(xAngle, cart.currentPosition)
-        driver.driveMotors(output,troll.maxVoltage)
+        #output = troll.determineOutput(xAngle, cart.currentPosition)
+        #driver.driveMotors(output,troll.maxVoltage)
         
         #print 'P = ', troll.errorPendulum, 'I = ', troll.errorPenIntegral, 'D = ', troll.errorDeltaPendulum
         #print 'Angle = ', xAngle, 'Accel= ', rollAngle, 'Gyro= ', gyroXAng
