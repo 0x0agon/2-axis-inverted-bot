@@ -75,7 +75,10 @@ class Controller:
         pendulumDerivativeArray = np.diff(self.pendulumErrorArray,1)
         self.errorDeltaPendulum = np.mean(pendulumDerivativeArray)
         if abs(self.errorPenIntegral) >= 150:
-            self.errorPenIntegral = 149
+            if self.errorPenIntegral >0:
+                self.errorPenIntegral = 149
+            else:
+                self.errorPenIntegral = -149
         else:
             self.errorPenIntegral = self.errorPendulum + self.errorPenIntegral
 

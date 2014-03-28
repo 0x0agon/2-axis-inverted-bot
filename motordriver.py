@@ -57,7 +57,7 @@ class MotorDriver:
             gpio.output(self.directionPin, gpio.LOW)
             self.direction = 0
 
-        dutyCycle = (math.fabs(controllerOutput)/MaxVoltage)*100
+        dutyCycle = (abs(controllerOutput)/MaxVoltage)*100
         if dutyCycle > 100.0:
             pwm.set_duty_cycle("P9_14", 99.0)
         else:

@@ -5,6 +5,7 @@ import ComplimentaryFilter
 import controller
 import motordriver
 import carttracker
+import time
 
 #Clean up GPIO and PWM pins from any aborted programs
 gpio.cleanup()
@@ -17,8 +18,8 @@ mpu.initialize()
 #Create two filter objects, one for each axis
 xFilter = ComplimentaryFilter.ComplimentaryFilter()
 yFilter = ComplimentaryFilter.ComplimentaryFilter()
-gyroXAng = 0
-gyroYAng = 0
+#gyroXAng = 0
+#gyroYAng = 0
 
 #Create the driver object for the main drive wheel
 driver = motordriver.MotorDriver()
@@ -48,28 +49,29 @@ gpio.add_event_detect("P8_13", gpio.BOTH, callback=event2Callback)
 
 #Create the drive wheel controller object
 troll = controller.Controller()
-troll.changeDesiredAngle(2.32)
+troll.changeDesiredAngle(3.5)#2.35
 
     #Change the Pendulum Gains
 #troll.changePInv(1)
-troll.changePInv(1.00) #1.72 is good for P alone
-troll.changeDInv(0.00) #2.30
-troll.changeIInv(0.00) #0.04
+troll.changePInv(2.85) #2.65
+troll.changeDInv(0.0161) #0.015
+troll.changeIInv(0.0645) #0.06
 
     #Change the Cart Gains
-#troll.changePCart(6.0) #8
+#troll.changePCart(4.0) #8
 #troll.changeICart(0.02)
 #troll.changeDCart(18.0) #25
 
 while True:
-
+        previousTime = time.time()
+        
         deltaGyroX = xFilter.getGyroAngPositionChange(mpu.getRealGyroData('x'), xFilter.getTimeSinceLast())
         deltaGyroY = yFilter.getGyroAngPositionChange(mpu.getRealGyroData('y'), yFilter.getTimeSinceLast())
         rollPitch = xFilter.getAccelRollPitch(mpu.getRealAccelData('x'),mpu.getRealAccelData('y'), mpu.getRealAccelData('z'))
         rollAngle = -rollPitch[0]
         pitchAngle = -rollPitch[1]
-        gyroXAng = gyroXAng - deltaGyroX
-        gyroYAng = gyroYAng + deltaGyroY
+        #gyroXAng = gyroXAng - deltaGyroX
+        #gyroYAng = gyroYAng + deltaGyroY
         yAngle = yFilter.findFilteredAngle(deltaGyroY, pitchAngle)
         xAngle = xFilter.findFilteredAngle(deltaGyroX, rollAngle)
         #print 'roll= ', rollAngle, 'pitch= ', pitchAngle, 'X Gyro= ', gyroXAng, 'Y Gyro = ', gyroYAng
@@ -77,8 +79,10 @@ while True:
     
         output = troll.determineOutput(xAngle, cart.currentPosition)
         driver.driveMotors(output,troll.maxVoltage)
+        
         #print 'P = ', troll.errorPendulum, 'I = ', troll.errorPenIntegral, 'D = ', troll.errorDeltaPendulum
         #print 'Angle = ', xAngle, 'Accel= ', rollAngle, 'Gyro= ', gyroXAng
         #print 'Angle= ', xAngle, 'Encoder= ', cart.encoderTicCounter, 'Output= ', output
-        print troll.pendulumErrorArray
         
+        timestep = time.time() - previousTime
+        print timestep
