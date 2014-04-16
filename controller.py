@@ -19,8 +19,8 @@ class Controller:
         self.errorDeltaCart = 0.0 #Inits the error var for the change in cart position
         self.errorCartIntegral = 0.0 #Inits the error var for the cart integral term
         
-        self.cartErrorArray = np.linspace(0,0,15)
-        self.pendulumErrorArray = np.linspace(0,0,15)
+        self.cartErrorArray = np.linspace(0,0,10)
+        self.pendulumErrorArray = np.linspace(0,0,10)
 
         self.Pinverted = 0.0
         self.Iinverted = 0.0
@@ -52,6 +52,10 @@ class Controller:
         self.getErrors(filteredSensorAngle, cartPosition)
         outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorDeltaPendulum+self.Iinverted*self.errorPenIntegral
         outputCart = self.Pcart*self.errorCart+self.Dcart*self.errorDeltaCart+self.Icart*self.errorCartIntegral
+
+        #outputPendulum = self.Pinverted*errorPendulum(filteredSensorAngle) + self.Dinverted*errorDeltaPendulum(filteredSensorAngle) + self.Iinverted*errorPenIntegral(filteredSensorAngle)
+        #outputCart = self.Pcart*errorCart(cartPosition) + self.Dcart*errorDeltaCart(cartPosition) + self.Icart*errorCartIntegral(cartPosition) 
+
         output = outputPendulum - outputCart
         if filteredSensorAngle < 50 or filteredSensorAngle >-50:
             if math.fabs(output) > self.maxVoltage:
@@ -64,7 +68,45 @@ class Controller:
         else:
             return 0.0
         
+    def errorPendulum(self,filteredSensorAngle):
+        #This funciton finds the current pendulum error and updates the array
+        self.pendulumErrorArray = np.roll(self.pendulumErrorArray,1)
+        errorPendulum = self.desiredAngle - filteredSensorAngle
+        self.pendulumErrorArray[0:1] = errorPendulum
+        return errorPendulum
 
+    def errorDeltaPendulum(self,filteredSensorAngle):
+        #This fucntion find the mean derivative of the error over the length of the error array
+
+        pendulumDerivativeArray = np.diff(self.pendulumErrorArray, 1)
+        errorDerivPendulum = np.mean(pendulumDerivativeArray)
+        return errorDerivPendulum
+
+    def errorPenIntegral(self,filteredSensorAngle):
+        #This funciton finds the current error integral
+
+        if self.errorPenIntegral >= 150:
+            self.errorPenIntegral = 149
+        elif self.errorPenInteral <= -150:
+            self.errorPenIntegral = -149
+        else:
+            self.errorPenIntegral = self.errorPendulum + self.errorPenIntegral
+        return self.errorPenIntegral
+
+    def errorCart(self,cartPosition):
+        self.cartErrorArray = np.roll(self.CartErrorArray, 1)
+        errorCart = self.desiredPosition - cartPosition
+        self.cartErrorArray[0:1] = errorCart
+        return errorCart
+
+    def errorDeltaCart(self, cartPosition):
+        cartDerivativeArray = np.diff(self.cartErrorArray,1)
+        errorDeltaCart = np.mean(cartDerivativeArray)
+        return errorDeltaCart
+
+    def errorCartIntegral(self, cartPosition):
+        self.errorCartIntegral = self.errorCart + self.errorCartIntegral
+        return self.errorCartIntegral
 
     def getErrors(self, filteredSensorAngle, cartPosition):
         #This function calculates and keeps track of error variables
@@ -74,11 +116,10 @@ class Controller:
         self.pendulumErrorArray[0:1] = self.errorPendulum#self.desiredAngle - filteredSensorAngle
         pendulumDerivativeArray = np.diff(self.pendulumErrorArray,1)
         self.errorDeltaPendulum = np.mean(pendulumDerivativeArray)
-        if abs(self.errorPenIntegral) >= 150:
-            if self.errorPenIntegral >0:
-                self.errorPenIntegral = 149
-            else:
-                self.errorPenIntegral = -149
+        if self.errorPenIntegral >= 150:
+            self.errorPenIntegral = 149
+        elif self.errorPenIntegral <=-150:
+            self.errorPenIntegral = -149
         else:
             self.errorPenIntegral = self.errorPendulum + self.errorPenIntegral
 

@@ -49,7 +49,7 @@ gpio.add_event_detect("P8_13", gpio.BOTH, callback=event2Callback)
 
 #Create the drive wheel controller object
 troll = controller.Controller()
-troll.changeDesiredAngle(3.5)#2.35
+troll.changeDesiredAngle(-1)#2.35
 
     #Change the Pendulum Gains
 #troll.changePInv(1)
@@ -69,20 +69,20 @@ while True:
         deltaGyroY = yFilter.getGyroAngPositionChange(mpu.getRealGyroDataY(), yFilter.getTimeSinceLast())
         rollPitch = xFilter.getAccelRollPitch(mpu.getRealAccelDataX(),mpu.getRealAccelDataY(), mpu.getRealAccelDataZ())
         rollAngle = -rollPitch[0]
-        #pitchAngle = -rollPitch[1]
+        pitchAngle = -rollPitch[1]
         #gyroXAng = gyroXAng - deltaGyroX
         #gyroYAng = gyroYAng + deltaGyroY
-        #yAngle = yFilter.findFilteredAngle(deltaGyroY, pitchAngle)
-        #xAngle = xFilter.findFilteredAngle(deltaGyroX, rollAngle)
+        yAngle = yFilter.findFilteredAngle(deltaGyroY, pitchAngle)
+        xAngle = xFilter.findFilteredAngle(deltaGyroX, rollAngle)
         #print 'roll= ', rollAngle, 'pitch= ', pitchAngle, 'X Gyro= ', gyroXAng, 'Y Gyro = ', gyroYAng
         #print 'roll= ', xAngle, 'pitch= ', yAngle
-    
-        #output = troll.determineOutput(xAngle, cart.currentPosition)
-        #driver.driveMotors(output,troll.maxVoltage)
+            
+        output = troll.determineOutput(xAngle, cart.findPosition())
+        driver.driveMotors(output,11)#Make sure the Robot max voltage is at least 11V
         
         #print 'P = ', troll.errorPendulum, 'I = ', troll.errorPenIntegral, 'D = ', troll.errorDeltaPendulum
         #print 'Angle = ', xAngle, 'Accel= ', rollAngle, 'Gyro= ', gyroXAng
         #print 'Angle= ', xAngle, 'Encoder= ', cart.encoderTicCounter, 'Output= ', output
         
         timestep = time.time() - previousTime
-        print timestep
+        print timestep, output

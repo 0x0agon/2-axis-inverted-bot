@@ -54,15 +54,8 @@ class CartTracker:
 
         self.findDirection() #It is important to find the direction before updating the time
 
-        self.oldTime = self.currentTime
-        self.currentTime = time.time() #This updates the current time variable
-        self.elapsedTime = self.currentTime - self.oldTime #This updates the elapsed time variable
-
         self.encoderTicCounter = self.encoderTicCounter + (-1) ** self.direction #This increments or decrements the counter according to direction of the motor spin
 
-        self.findPosition()#This updates the position variables
-
-        self.findVelocity()#This updates the velocity variables
 
     def updateState(self,lineAValue, lineBValue):
         #This funciton serves to update the time since the last
@@ -74,10 +67,10 @@ class CartTracker:
             self.newState = 0
         elif lineAValue == 0 and lineBValue == 1:
             self.newState = 1
-        elif lineAValue == 1 and lineBValue == 0:
-            self.newState = 3
         elif lineAValue == 1 and lineBValue == 1:
             self.newState = 2
+        elif lineAValue == 1 and lineBValue == 0:
+            self.newState = 3
         else:
             print "Congrats, the encoder found the mythical 5th state. You've broken digital logic."
             
@@ -87,31 +80,31 @@ class CartTracker:
         #from which the direction can be found
         #The value should either be a 0 or a 1
 
-        if self.oldState == 0 and self.newState == 1:
-            self.direction = 0
-        elif self.oldState == 1 and self.newState == 2:
-            self.direction = 0
-        elif self.oldState == 2 and self.newState == 3:
-            self.direction = 0
-        elif self.oldState == 3 and self.newState == 0:
-            self.direction = 0
-        elif self.oldState == 0 and self.newState == 3:
-            self.direction = 1
-        elif self.oldState == 3 and self.newState == 2:
-            self.direction = 1
-        elif self.oldState == 2 and self.newState == 1:
-            self.direction = 1
-        elif self.oldState == 1 and self.newState == 0:
-            self.direction = 1
-        else:
-            self.direction = self.direction
-        #if (self.newState - self.oldState) == 1 or (self.newState - self.oldState) == -3:
+        #if self.oldState == 0 and self.newState == 1:
         #    self.direction = 0
-        #elif (self.newState - self.oldState) == -1 or (self.newState - self.oldState) == 3:
+        #elif self.oldState == 1 and self.newState == 2:
+        #    self.direction = 0
+        #elif self.oldState == 2 and self.newState == 3:
+        #    self.direction = 0
+        #elif self.oldState == 3 and self.newState == 0:
+        #    self.direction = 0
+        #elif self.oldState == 0 and self.newState == 3:
+        #    self.direction = 1
+        #elif self.oldState == 3 and self.newState == 2:
+        #    self.direction = 1
+        #elif self.oldState == 2 and self.newState == 1:
+        #    self.direction = 1
+        #elif self.oldState == 1 and self.newState == 0:
         #    self.direction = 1
         #else:
-            #print "Uhhh...looks like the direction math is off or something."
-        #    pass
+        #    self.direction = self.direction
+        if 3>(self.newState - self.oldState) >= 1 or (self.newState - self.oldState) <= -3:
+            self.direction = 0
+        elif -3<(self.newState - self.oldState) <= -1 or (self.newState - self.oldState) >= 3:
+            self.direction = 1
+        else:
+            pass
+
 
     def findPosition(self):
         #This function calculates the current position relative to where the robot started
@@ -120,13 +113,19 @@ class CartTracker:
         self.previousPosition = self.currentPosition
         self.currentPosition = (self.encoderTicCounter/16.0) * self.gearRatio * self.wheelDiameter
 
+        #This is for velocity calculations
+        self.oldTime = self.currentTime
+        self.currentTime = time.time()
+        self.elapsedtime = self.currentTime - self.oldTime
+        return self.currentPosition
+
     def findVelocity(self):
         #This function calculates the current velocity based on the elapsed time, 
         #currentPosition, and previous position
 
         self.previousVelocity = self.currentVelocity
         self.currentVelocity = (self.currentPosition - self.previousPosition)/self.elapsedTime
-
+        return self.currentVelocity
     
         #The following code should run whenever an event is detected
         #Which should only occur when the encoder data bit switches

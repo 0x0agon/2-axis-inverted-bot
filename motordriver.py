@@ -52,10 +52,9 @@ class MotorDriver:
         #and a direction based on the sign of the controllerOutput
         if controllerOutput > 0:
             gpio.output(self.directionPin, gpio.HIGH)
-            self.direction = 1
         else:
             gpio.output(self.directionPin, gpio.LOW)
-            self.direction = 0
+            
 
         dutyCycle = (abs(controllerOutput)/MaxVoltage)*100
         if dutyCycle > 100.0:
