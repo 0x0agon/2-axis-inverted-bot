@@ -1,6 +1,5 @@
 import time
 import math
-import numpy as np
 
 class Controller:
 
@@ -19,8 +18,8 @@ class Controller:
         self.errorDeltaCart = 0.0 #Inits the error var for the change in cart position
         self.errorCartIntegral = 0.0 #Inits the error var for the cart integral term
         
-        self.cartErrorArray = np.linspace(0,0,10)
-        self.pendulumErrorArray = np.linspace(0,0,10)
+        self.cartErrorList = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        self.pendulumErrorList = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
         self.Pinverted = 0.0
         self.Iinverted = 0.0
@@ -50,8 +49,8 @@ class Controller:
         #sensorAngle should be in degrees and cartPositionValue should be
         #in inches.
         self.getErrors(filteredSensorAngle, cartPosition)
-        outputPendulum = self.Pinverted*self.errorPendulum+self.Dinverted*self.errorDeltaPendulum+self.Iinverted*self.errorPenIntegral
-        outputCart = self.Pcart*self.errorCart+self.Dcart*self.errorDeltaCart+self.Icart*self.errorCartIntegral
+        outputPendulum = self.Pinverted*self.pendulumErrorList[0]+self.Dinverted*self.errorDeltaPendulum+self.Iinverted*self.errorPenIntegral
+        outputCart = self.Pcart*self.cartErrorList[0]+self.Dcart*self.errorDeltaCart+self.Icart*self.errorCartIntegral
 
         #outputPendulum = self.Pinverted*errorPendulum(filteredSensorAngle) + self.Dinverted*errorDeltaPendulum(filteredSensorAngle) + self.Iinverted*errorPenIntegral(filteredSensorAngle)
         #outputCart = self.Pcart*errorCart(cartPosition) + self.Dcart*errorDeltaCart(cartPosition) + self.Icart*errorCartIntegral(cartPosition) 
@@ -110,25 +109,39 @@ class Controller:
 
     def getErrors(self, filteredSensorAngle, cartPosition):
         #This function calculates and keeps track of error variables
-        
-        self.pendulumErrorArray =np.roll(self.pendulumErrorArray,1)
-        self.errorPendulum = self.desiredAngle - filteredSensorAngle
-        self.pendulumErrorArray[0:1] = self.errorPendulum#self.desiredAngle - filteredSensorAngle
-        pendulumDerivativeArray = np.diff(self.pendulumErrorArray,1)
-        self.errorDeltaPendulum = np.mean(pendulumDerivativeArray)
+
+        #We first find the new error value
+        newErrorPen = self.desiredAngle-filteredSensorAngle
+
+        #Then we update the error list with this value
+        self.pendulumErrorList= [newErrorPen] + self.pendulumErrorList[:(len(self.pendulumErrorList)-1)]
+
+        #Then we find the average derivative value
+        unscaledDeriv = [(y-x) for (x,y) in zip(self.pendulumErrorList[:-1], self.pendulumErrorList[1:])]
+        self.errorDeltaPendulum = sum(unscaledDeriv)/(len(unscaledDeriv)*1.0)
+
+        #Then we find the integral
         if self.errorPenIntegral >= 150:
             self.errorPenIntegral = 149
         elif self.errorPenIntegral <=-150:
             self.errorPenIntegral = -149
         else:
-            self.errorPenIntegral = self.errorPendulum + self.errorPenIntegral
+            self.errorPenIntegral = newErrorPen + self.errorPenIntegral
 
-        self.cartErrorArray= np.roll(self.cartErrorArray, 1)
-        self.errorCart = self.desiredPosition - cartPosition
-        self.cartErrorArray[0:1] = self.errorCart
-        cartDerivativeArray = np.diff(self.cartErrorArray,1)
-        self.errorDeltaCart = np.mean(cartDerivativeArray)
-        self.errorCartIntegral = self.errorCart + self.errorCartIntegral
+        #We then repeat these steps for the cart
+
+        #Calculate the new error value
+        newErrorCart = self.desiredPosition - cartPosition
+
+        #Update the error list
+        self.cartErrorList = [newErrorCart] + self.cartErrorList[:(len(self.cartErrorList)-1)]
+
+        #Find the average derivative
+        unscaledDerivCart = [(y-x) for (x,y) in zip(self.cartErrorList[:-1], self.cartErrorList[1:])]
+        self.errorDeltaCart = sum(unscaledDerivCart)/(len(unscaledDerivCart)*1.0)
+
+        #Find the integral value
+        self.errorCartIntegral = newErrorCart + self.errorCartIntegral
         
     def changeGain(self, invertedOrCartIndicator, pIOrDIndicator, value):
         #This function allows the user to change the gain value of any one
